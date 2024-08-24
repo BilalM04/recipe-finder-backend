@@ -1,51 +1,66 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/userModel');
-const Recipe = require('../models/recipeModel');
 
 // Get a user's recipes
 router.get('/:email', async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.params.email }).populate('recipes');
+        const user = await User.findOne({ email: req.params.email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.json(user.recipes);
+        res.json(user.recipes); // Return array of URIs
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Post a new recipe to a user, creating a new one if it doesn't exist
+// Post a new recipe to a user
 router.post('/:email', async (req, res) => {
-    const { label, image, ingredients } = req.body;
+    console.log('Request Body:', req.body); // Log the entire body
+    console.log('Request Headers:', req.headers); // Log the headers for debugging
+
+    const { uri } = req.body;
+
+    console.log('Received URI:', uri); // Log the received URI
+
+    if (!uri || typeof uri !== 'string' || uri.trim() === '') {
+        return res.status(400).json({ message: 'Invalid URI' });
+    }
+
     try {
         const userEmail = req.params.email;
         let user = await User.findOne({ email: userEmail });
-        
+
         if (!user) {
             user = await User.create({ email: userEmail }); // Create a new user if not found
         }
 
-        // Check if the recipe already exists for this user
-        const recipeExists = await Recipe.findOne({ label, _id: { $in: user.recipes } });
-
-        if (!recipeExists) {
-            const newRecipe = await Recipe.create({ label, image, ingredients });
-            user.recipes.push(newRecipe);
-            await user.save();
-            res.status(201).json(newRecipe);
-        } else {
-            res.status(409).json({ message: 'Recipe already exists for this user!' });
+        if (user.recipes.includes(uri)) {
+            return res.status(409).json({ message: 'Recipe already exists for this user!' });
         }
+
+        user.recipes.push(uri);
+        await user.save();
+        res.status(201).json({ uri });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-router.delete('/:email/recipes/:recipeId', async (req, res) => {
+// Delete a recipe from a user's collection
+router.delete('/:email/:uri', async (req, res) => {
+    console.log('Request Body:', req.body); // Log the entire body
+    console.log('Request Headers:', req.headers); // Log the headers for debugging
+
     const userEmail = req.params.email;
-    const recipeId = req.params.recipeId;
+    const uri = req.params.uri;
+
+    console.log('Received URI:', uri); // Log the received URI
+
+    if (!uri || typeof uri !== 'string' || uri.trim() === '') {
+        return res.status(400).json({ message: 'Invalid URI' });
+    }
 
     try {
         const user = await User.findOne({ email: userEmail });
@@ -54,25 +69,19 @@ router.delete('/:email/recipes/:recipeId', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if the recipe exists for this user
-        const recipeIndex = user.recipes.findIndex(recipe => String(recipe._id) === recipeId);
+        const recipeIndex = user.recipes.indexOf(uri);
 
         if (recipeIndex === -1) {
             return res.status(404).json({ message: 'Recipe not found for this user' });
         }
 
-        // Remove the recipe reference from the user's recipes array
         user.recipes.splice(recipeIndex, 1);
         await user.save();
-
-        // Delete the recipe from the Recipe collection
-        await Recipe.findByIdAndDelete(recipeId);
 
         res.json({ message: 'Recipe deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
-
 
 module.exports = router;
