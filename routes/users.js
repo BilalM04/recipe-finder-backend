@@ -54,7 +54,7 @@ router.delete('/:email/:uri', async (req, res) => {
     console.log('Request Headers:', req.headers); // Log the headers for debugging
 
     const userEmail = req.params.email;
-    const uri = req.params.uri;
+    const uri = decodeURI(req.params.uri);
 
     console.log('Received URI:', uri); // Log the received URI
 
