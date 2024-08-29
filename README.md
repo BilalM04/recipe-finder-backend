@@ -72,7 +72,7 @@ The hosted frontend application is accessible at [Recipe Finder](https://bilalm0
   }
   ```
 
-## Post New Recipe for User
+### Post New Recipe for User
 
 **Endpoint:** `POST /:email`
 
