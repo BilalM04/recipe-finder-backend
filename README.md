@@ -2,73 +2,148 @@
 
 Welcome to the Recipe Finder Backend API, a RESTful API created using Node.js and Express.js to handle interactions with a MongoDB database. This API serves as the backend for the Recipe Finder web application, facilitating seamless communication between the frontend and the database.
 
-## Overview
+The hosted frontend application is accessible at [Recipe Finder](https://bilalm04.github.io/recipe-finder). The source code for the frontend can be found [here](https://github.com/BilalM04/recipe-finder).
 
-The Recipe Finder Backend API is designed to provide a robust and scalable backend solution for the Recipe Finder web application. Leveraging the power of Node.js, Express.js, and MongoDB, this API handles various endpoints to support CRUD (Create, Read, Update, Delete) operations for recipes.
+## Technologies Used
 
-## Features
-
-- **RESTful Endpoints:** The API follows RESTful principles, providing clear and intuitive endpoints for managing recipe data.
-- **MongoDB Integration:** Interactions with a MongoDB database ensure efficient storage and retrieval of recipe information.
-- **Scalability:** The modular design of the API allows for easy scalability, accommodating future enhancements and features.
+- **Node.js:** JavaScript runtime for building scalable network applications.
+- **Express.js:** Web application framework for Node.js, used to create the RESTful API.
+- **MongoDB:** NoSQL database for storing user data and recipes.
+- **Mongoose:** ODM (Object Data Modeling) library for MongoDB and Node.js.
+- **dotenv:** Module for loading environment variables from a `.env` file.
 
 ## How to Use
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/your-username/recipe-finder-backend.git
+   git clone https://github.com/BilalM04/recipe-finder-backend.git
+   ```
    
 2. **Install Dependencies:**
    ```bash
-    cd recipe-finder-backend
-    npm install
+   cd recipe-finder-backend
+   npm install
+   ```
 
-3. **Configure MongoDB:** Update the MongoDB connection details in the configuration file (config.js).
+3. **Configure Environment Variables:** Create a `.env` file and fill in the following variables with your own credentials.
+   ```env
+   MONGODB_URI=
+   PORT=
+   ```
 
-4. **Run the Server:**
+5. **Run the Server:**
    ```bash
-     npm start
+   npm start
+   ```
    
-5. The API will be accessible at http://localhost:3000.
+6. The API will be accessible at <http://localhost:PORT>.
 
 ## API Endpoints
 
-### 1. Retrieve a List of All Recipes
+### Get User's Recipes
 
-- **Endpoint:** `GET /recipes`
-- **Description:** Retrieve a list of all recipes.
-- **Response:** Returns an array of recipes.
+**Endpoint:** `GET /:email`
 
-### 2. Retrieve a Specific Recipe by ID
+**Description:** Retrieves the list of recipe URIs associated with a specific user.
 
-- **Endpoint:** `GET /recipes/:id`
-- **Description:** Retrieve a specific recipe by ID.
-- **Request Parameters:**
-  - `id`: The ID of the recipe.
-- **Response:** Returns details of the specified recipe.
+**Parameters:**
+- **`email` (path parameter):** The email address of the user.
+  
+**Response:**
 
-### 3. Add a New Recipe
+- **200 OK:** Returns an array of recipe URIs.
+  ```json
+  [
+    "recipe-uri-1",
+    "recipe-uri-2",
+    "recipe-uri-3"
+  ]
+  ```
+- **404 Not Found:** User with the specified email does not exist.
+  ```json
+  {
+    "message": "User not found"
+  }
+  ```
+- **500 Internal Server Error:** Error occurred while processing the request.
+  ```json
+  {
+    "message": "Error message"
+  }
+  ```
 
-- **Endpoint:** `POST /recipes`
-- **Description:** Add a new recipe.
-- **Request Body:**
-  - Specify the details of the new recipe.
-- **Response:** Returns details of the newly created recipe.
+## Post New Recipe for User
 
-### 4. Update a Recipe by ID
+**Endpoint:** `POST /:email`
 
-- **Endpoint:** `PUT /recipes/:id`
-- **Description:** Update a recipe by ID.
-- **Request Parameters:**
-  - `id`: The ID of the recipe.
-- **Request Body:**
-  - Specify the updated details of the recipe.
-- **Response:** Returns details of the updated recipe.
+**Description:** Adds a new recipe URI to the user's collection.
 
-### 5. Delete a Recipe by ID
+**Parameters:**
+- **`email` (path parameter):** The email address of the user.
+  
+**Request Body:**
+- **`uri` (string):** The URI of the recipe to be added.
+  
+**Response:**
 
-- **Endpoint:** `DELETE /recipes/:id`
-- **Description:** Delete a recipe by ID.
-- **Request Parameters:**
-  - `id`: The ID of the recipe.
-- **Response:** Returns a message indicating successful deletion.
+- **201 Created:** Successfully added the recipe URI
+   ```json
+  {
+    "uri": "recipe-uri"
+  }
+  ```
+- **400 Bad Request:** Invalid URI provided.
+  ```json
+  {
+    "message": "Invalid URI"
+  }
+  ```
+- **409 Conflict:** Recipe URI already exists for the user.
+  ```json
+  {
+    "message": "Recipe already exists for this user!"
+  }
+  ```
+- **500 Internal Server Error:** Error occurred while processing the request.
+  ```json
+  {
+    "message": "Error message"
+  }
+  ```
+
+### Delete User's Recipe
+
+**Endpoint:** `DELETE /:email/:uri`
+
+**Description:** Removes a specific recipe URI from the user's collection.
+
+**Parameters:**
+- **`email` (path parameter):** The email address of the user.
+- **`uri` (path parameter):** The URI of the recipe to be deleted (URL-encoded).
+  
+**Response:**
+
+- **200 OK:** Successfully deleted the recipe URI.
+   ```json
+  {
+    "message": "Recipe deleted successfully"
+  }
+  ```
+- **400 Bad Request:** Invalid URI provided.
+  ```json
+  {
+    "message": "Invalid URI"
+  }
+  ```
+- **404 Not Found:** User with the specified email or recipe URI does not exist.
+  ```json
+  {
+    "message": "User not found OR Recipe not found for this user"
+  }
+  ```
+- **500 Internal Server Error:** Error occurred while processing the request.
+  ```json
+  {
+    "message": "Error message"
+  }
+  ```
